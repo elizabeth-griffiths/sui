@@ -710,6 +710,8 @@ impl SuiNode {
             archive_readers,
             validator_tx_finalizer,
             chain_identifier,
+            config.policy_config,
+            config.firewall_config,
         )
         .await;
         // ensure genesis txn was executed
@@ -1479,9 +1481,7 @@ impl SuiNode {
             state.clone(),
             consensus_adapter,
             Arc::new(ValidatorServiceMetrics::new(prometheus_registry)),
-            TrafficControllerMetrics::new(prometheus_registry),
-            config.policy_config.clone(),
-            config.firewall_config.clone(),
+            config.policy_config.client_id_source,
         );
 
         let mut server_conf = mysten_network::config::Config::new();
@@ -2031,11 +2031,12 @@ pub async fn build_http_server(
     let mut router = axum::Router::new();
 
     let json_rpc_router = {
+        let traffic_controller = state.traffic_controller.as_ref().cloned();
         let mut server = JsonRpcServerBuilder::new(
             env!("CARGO_PKG_VERSION"),
             prometheus_registry,
+            traffic_controller,
             config.policy_config.clone(),
-            config.firewall_config.clone(),
         );
 
         let kv_store = build_kv_store(&state, config, prometheus_registry)?;

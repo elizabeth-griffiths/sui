@@ -13,6 +13,7 @@ use std::fs;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::ops::Add;
 use std::sync::Arc;
+use sui_types::error::SuiResult;
 
 use self::metrics::TrafficControllerMetrics;
 use crate::traffic_controller::nodefw_client::{BlockAddress, BlockAddresses, NodeFWClient};
@@ -102,6 +103,16 @@ impl TrafficController {
             }
             None => Self::spawn(policy_config, metrics, fw_config),
         }
+    }
+
+    /// Reconfigure traffic control without clearing the blocklists
+    pub fn reconfigure_no_clear(&self, error_threshold: u64, spam_threshold: u64) -> SuiResult<()> {
+        // TODO: implement. This will likely require introducing a mutex, aquiring it,
+        // then spawning a new task to run the tally loop with the new config.
+        // ALTERNATIVELY, can make it so that the policy dynamically reads the threshold
+        // values from memory whenever it needs to, and we instead save these values in memory
+        // and do an atomic swap of the values when needed.
+        todo!()
     }
 
     fn spawn(
